@@ -1,0 +1,90 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-22.04'
+
+stages:
+- stage: 'Build'
+  displayName: 'Build'
+  jobs:
+  - job: 'Build'
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Install Node.js 18.x'
+
+      - script: |
+          npm install -g @angular/cli
+          npm ci
+          ng build --configuration production
+        displayName: 'npm ci and build'
+
+      - task: ArchiveFiles@2
+        displayName: 'Archive files'
+        inputs:
+          rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          replaceExistingArchive: true
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish build artifacts'
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
+
+- stage: 'Dev'
+  displayName: 'Deploy to Dev'
+  dependsOn: 'Build'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  jobs:
+    - job: 'Dev'
+      steps:
+      - download: current
+        artifact: drop
+      - task: CopyFilesOverSSH@0
+        inputs:
+          sshEndpoint: 'luperclub-dev'
+          sourceFolder: '$(Pipeline.Workspace)/drop/'
+          contents: '**'
+          targetFolder: '/home/ubuntu/temp'
+          readyTimeout: '20000'
+
+      - task: SSH@0
+        inputs:
+          sshEndpoint: 'luperclub-dev'
+          runOptions: 'inline'
+          inline: |
+            echo "Actualizando luperclub-web mediante paquete zip"
+
+            echo "Borrando carpeta"
+
+            sudo rm -rf luperclub-web/
+
+            echo "Creando carpeta nueva"
+
+            sudo mkdir luperclub-web/
+
+            cd /home/ubuntu/temp
+
+            echo "Descomprimiendo"
+
+            sudo unzip $(Build.BuildId).zip -d /home/ubuntu/luperclub-web
+
+            sudo rm $(Build.BuildId).zip
+
+            cd ..
+
+            echo "Ajustando permisos"
+
+            sudo chown ubuntu -R luperclub-web/
+
+            sudo chown ubuntu -R luperclub-web/browser
+
+            sudo systemctl restart nginx
+
+            echo "Terminado"
+          readyTimeout: '20000'
