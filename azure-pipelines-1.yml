@@ -47,7 +47,7 @@ stages:
         artifact: drop
       - task: CopyFilesOverSSH@0
         inputs:
-          sshEndpoint: 'luperclub-dev'
+          sshEndpoint: 'luperclub-prod'
           sourceFolder: '$(Pipeline.Workspace)/drop/'
           contents: '**'
           targetFolder: '/home/ubuntu/temp'
@@ -55,7 +55,7 @@ stages:
 
       - task: SSH@0
         inputs:
-          sshEndpoint: 'luperclub-dev'
+          sshEndpoint: 'luperclub-prod'
           runOptions: 'inline'
           inline: |
             echo "Actualizando luperclub-web mediante paquete zip"
