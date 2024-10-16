@@ -16,7 +16,7 @@ stages:
 
       - script: |
           npm install -g @angular/cli
-          npm ci
+          npm install
           ng build --configuration production
         displayName: 'npm ci and build'
 
