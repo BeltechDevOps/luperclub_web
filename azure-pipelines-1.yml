@@ -16,14 +16,14 @@ stages:
 
       - script: |
           npm install -g @angular/cli
-          npm install
+          npm ci
           ng build --configuration production
         displayName: 'npm ci and build'
 
       - task: ArchiveFiles@2
         displayName: 'Archive files'
         inputs:
-          rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+          rootFolderOrFile: '$(Build.SourcesDirectory)/dist/luperclub-web'
           includeRootFolder: false
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
