@@ -8,19 +8,18 @@ stages:
   displayName: 'Build'
   jobs:
   - job: 'Build'
-    steps:
+    steps:      
       - task: NodeTool@0
         inputs:
-          versionSource: 'spec'
-          versionSpec: '6.x'
-          checkLatest: true
-        displayName: 'install node'
+          versionSpec: '18.x'
+        displayName: 'Install Node.js 18.x'
 
       - script: |
           npm install -g @angular/cli
           npm install
           ng build --configuration production
         displayName: 'npm ci and build'
+        workingDirectory: ''
 
       - task: ArchiveFiles@2
         displayName: 'Archive files'
