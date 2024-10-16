@@ -13,6 +13,10 @@ stages:
         inputs:
           versionSpec: '18.x'
         displayName: 'Install Node.js 18.x'
+        
+      - script: |
+            echo  What the hell im doing here
+            ls
 
       - script: |
           npm install -g @angular/cli
